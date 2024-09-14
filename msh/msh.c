@@ -44,8 +44,8 @@
 
 void print_error_message()
 {
-    char error_message[30] = "An error has occurred\n";
-    write(STDERR_FILENO, error_message, strlen(error_message)); 
+  char error_message[30] = "An error has occurred\n";
+  write(STDERR_FILENO, error_message, strlen(error_message)); 
 }
 
 int main()
@@ -96,12 +96,14 @@ int main()
     // Now print the tokenized input as a debug check
     // \TODO Remove this code and replace with your shell functionality
 
+    char *const args[] = {"/usr/bin/ls", NULL};
+
     int token_index  = 0;
     for( token_index = 0; token_index < token_count; token_index ++ ) 
     {
       printf("token[%d] = %s\n", token_index, token[token_index] );
+      execv(args[0], args);
     }
-
     free( head_ptr );
 
   }
