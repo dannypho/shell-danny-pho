@@ -40,7 +40,13 @@
 
 #define MAX_COMMAND_SIZE 255    // The maximum command-line size
 
-#define MAX_NUM_ARGUMENTS 32     
+#define MAX_NUM_ARGUMENTS 32
+
+void print_error_message()
+{
+    char error_message[30] = "An error has occurred\n";
+    write(STDERR_FILENO, error_message, strlen(error_message)); 
+}
 
 int main()
 {
@@ -93,7 +99,7 @@ int main()
     int token_index  = 0;
     for( token_index = 0; token_index < token_count; token_index ++ ) 
     {
-      printf("token[%d] = %s\n", token_index, token[token_index] );  
+      printf("token[%d] = %s\n", token_index, token[token_index] );
     }
 
     free( head_ptr );
