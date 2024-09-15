@@ -48,6 +48,23 @@ void print_error_message()
   write(STDERR_FILENO, error_message, strlen(error_message)); 
 }
 
+// Returns -1 if directory cannot be found
+// Returns 1 if found
+// int search_directories(char shell_commmand)
+// {
+//   char directory_one[] = "/bin/";
+//   char directory_two[] = "/usr/bin/";
+//   char directory_three[] = "/usr/local/bin/";
+//   char directory_four[] = "./";
+
+//   access("/bin/ls", X_OK);
+//   access("/bin/ls", X_OK);
+//   access("/bin/ls", X_OK);
+//   access("/bin/ls", X_OK);
+
+//   return 1;
+// }
+
 int main()
 {
 
@@ -115,7 +132,7 @@ int main()
       // When fork() returns 0, we are in child process
       if(strcmp(token[0], (char*)"ls") == 0)
       {
-        char *const args[] = {"./", NULL};
+        char *args[] = {"/usr/bin/ls", NULL};
         execv(args[0], args);
       }
     }
