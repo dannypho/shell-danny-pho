@@ -96,16 +96,38 @@ int main()
     // Now print the tokenized input as a debug check
     // \TODO Remove this code and replace with your shell functionality
 
-    char *const args[] = {"/usr/bin/ls", NULL};
+    // int token_index  = 0;
+    // for( token_index = 0; token_index < token_count; token_index ++ ) 
+    // {
+    //   printf("token[%d] = %s\n", token_index, token[token_index] );
+    // }
 
-    int token_index  = 0;
-    for( token_index = 0; token_index < token_count; token_index ++ ) 
+    pid_t pid = fork();
+
+    if( pid == -1 )
     {
-      printf("token[%d] = %s\n", token_index, token[token_index] );
-      execv(args[0], args);
+      // When fork() returns -1, an error happened.
+      perror("fork failed: ");
+      exit( EXIT_FAILURE );
     }
-    free( head_ptr );
+    else if(pid == 0)
+    {
+      // When fork() returns 0, we are in child process
+      if(strcmp(token[0], (char*)"ls") == 0)
+      {
+        char *const args[] = {"./", NULL};
+        execv(args[0], args);
+      }
+    }
+    else
+    {
+      // We are back in parent process
 
+      int status;
+      wait(&status);
+
+      free( head_ptr );
+    }
   }
   return 0;
   // e2520ca2-76f3-90d6-0242ac1210022
