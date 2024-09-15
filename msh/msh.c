@@ -50,20 +50,34 @@ void print_error_message()
 
 // Returns -1 if directory cannot be found
 // Returns 1 if found
-// int search_directories(char shell_commmand)
-// {
-//   char directory_one[] = "/bin/";
-//   char directory_two[] = "/usr/bin/";
-//   char directory_three[] = "/usr/local/bin/";
-//   char directory_four[] = "./";
+char *search_directories(char shell_commmand[])
+{
+  char path_one[] = "/bin/";
+  char path_two[] = "/usr/bin/";
+  char path_three[] = "/usr/local/bin/";
+  char path_four[] = "./";
 
-//   access("/bin/ls", X_OK);
-//   access("/bin/ls", X_OK);
-//   access("/bin/ls", X_OK);
-//   access("/bin/ls", X_OK);
+  char *full_path = malloc((strlen(path_three) + strlen(shell_commmand) + 1) * sizeof(char));
 
-//   return 1;
-// }
+  if(access("/bin/", X_OK) == 0)
+  {
+    return full_path;
+  }
+  else if(access("/usr/bin/", X_OK)== 0)
+  {
+    return full_path;
+  }
+  else if (access("/usr/local/bin/", X_OK) == 0)
+  {
+    return full_path;
+  }
+  else if(access("./", X_OK) == 0)
+  {
+    return full_path;
+  }
+
+  return;
+}
 
 int main()
 {
@@ -139,7 +153,6 @@ int main()
     else
     {
       // We are back in parent process
-
       int status;
       wait(&status);
 
