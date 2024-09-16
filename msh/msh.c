@@ -48,8 +48,11 @@ void print_error_message()
   write(STDERR_FILENO, error_message, strlen(error_message)); 
 }
 
-// Returns -1 if directory cannot be found
-// Returns 1 if found
+
+// Checks if the shell command is valid by appending it to the four required directories
+// and passing it through access()
+// Returns the path (string) if access is successful
+// Returns NULL if access is not succcessful or if malloc fails
 char *search_directories(char shell_commmand[])
 {
   char path_one[] = "/bin/";
@@ -57,26 +60,79 @@ char *search_directories(char shell_commmand[])
   char path_three[] = "/usr/local/bin/";
   char path_four[] = "./";
 
-  char *full_path = malloc((strlen(path_three) + strlen(shell_commmand) + 1) * sizeof(char));
+  char *full_path_one = malloc((strlen(path_one) + strlen(shell_commmand) + 1) * sizeof(char));
+  if(full_path_one == NULL)
+  {
+    return NULL;
+  }
+  strcpy(full_path_one, path_one);
+  strcat(full_path_one, shell_commmand);
 
-  if(access("/bin/", X_OK) == 0)
+  char *full_path_two = malloc((strlen(path_two) + strlen(shell_commmand) + 1) * sizeof(char));
+  if(full_path_two == NULL)
   {
-    return full_path;
+    free(full_path_one);
+    return NULL;
   }
-  else if(access("/usr/bin/", X_OK)== 0)
+  strcpy(full_path_two, path_two);
+  strcat(full_path_two, shell_commmand);
+
+  char *full_path_three = malloc((strlen(path_three) + strlen(shell_commmand) + 1) * sizeof(char));
+  if(full_path_three == NULL)
   {
-    return full_path;
+    free(full_path_one);
+    free(full_path_two);
+    return NULL;
   }
-  else if (access("/usr/local/bin/", X_OK) == 0)
+  strcpy(full_path_three, path_three);
+  strcat(full_path_three, shell_commmand);
+
+  char *full_path_four = malloc((strlen(path_four) + strlen(shell_commmand) + 1) * sizeof(char));
+  if(full_path_four == NULL)
   {
-    return full_path;
+    free(full_path_one);
+    free(full_path_two);
+    free(full_path_three);
+    return NULL;
   }
-  else if(access("./", X_OK) == 0)
-  {
-    return full_path;
+  strcpy(full_path_four, path_four);
+  strcat(full_path_four, shell_commmand);
+
+  if(access(full_path_one, X_OK) == 0)
+  { 
+    free(full_path_two);
+    free(full_path_three);
+    free(full_path_four);
+    return full_path_one;
+  }
+  else if(access(full_path_two, X_OK)== 0)
+  { 
+    free(full_path_one);
+    free(full_path_three);
+    free(full_path_four);
+    return full_path_two;
+  }
+  else if (access(full_path_three, X_OK) == 0)
+  { 
+    free(full_path_one);
+    free(full_path_two);
+    free(full_path_four);
+    return full_path_three;
+  }
+  else if(access(full_path_four, X_OK) == 0)
+  { 
+    free(full_path_one);
+    free(full_path_two);
+    free(full_path_three);
+    return full_path_four;
   }
 
-  return;
+  free(full_path_one);
+  free(full_path_two);
+  free(full_path_three);
+  free(full_path_four);
+  
+  return NULL;
 }
 
 int main()
@@ -144,11 +200,18 @@ int main()
     else if(pid == 0)
     {
       // When fork() returns 0, we are in child process
-      if(strcmp(token[0], (char*)"ls") == 0)
+
+      char *full_path = search_directories(token[0]);
+      if(full_path == 0)
       {
-        char *args[] = {"/usr/bin/ls", NULL};
-        execv(args[0], args);
+        print_error_message();
       }
+
+      // if(strcmp(token[0], (char*)"ls") == 0)
+      // {
+      //   char *args[] = {"/usr/bin/ls", NULL};
+      //   execv(args[0], args);
+      // }
     }
     else
     {
@@ -156,7 +219,7 @@ int main()
       int status;
       wait(&status);
 
-      free( head_ptr );
+      free(head_ptr);
     }
   }
   return 0;
