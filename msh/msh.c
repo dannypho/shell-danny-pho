@@ -207,11 +207,8 @@ int main()
         print_error_message();
       }
 
-      // if(strcmp(token[0], (char*)"ls") == 0)
-      // {
-      //   char *args[] = {"/usr/bin/ls", NULL};
-      //   execv(args[0], args);
-      // }
+      execv(full_path, token);
+
     }
     else
     {
