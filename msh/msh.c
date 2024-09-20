@@ -52,7 +52,7 @@ void print_error_message()
 // Checks if the shell command is valid by appending it to the four required directories
 // and passing it through access()
 // Returns the path (string) if access is successful
-// Returns NULL if access is not succcessful or if malloc fails
+// Returns NULL if access() is not succcessful or if malloc() fails
 char *search_directories(char shell_commmand[])
 {
   char path_one[] = "/bin/";
@@ -189,35 +189,62 @@ int main()
     //   printf("token[%d] = %s\n", token_index, token[token_index] );
     // }
 
-    pid_t pid = fork();
-
-    if( pid == -1 )
-    {
-      // When fork() returns -1, an error happened.
-      perror("fork failed: ");
-      exit( EXIT_FAILURE );
+    // Handle built-in commands
+    if ((strcmp(token[0], "exit") == 0 && token[1] == NULL) || 
+        (strcmp(token[0], "quit") == 0 && token[1] == NULL))
+    { 
+      exit(0);
     }
-    else if(pid == 0)
-    {
-      // When fork() returns 0, we are in child process
 
-      char *full_path = search_directories(token[0]);
-      if(full_path == 0)
+    if (strcmp(token[0], "cd") == 0)
+    { 
+      if (token[1] != NULL && token[2] == NULL)
+      {
+        chdir(token[1]);
+      }
+      else
       {
         print_error_message();
       }
-
-      execv(full_path, token);
-
     }
-    else
+    
+    // Handle shell commands
+    // Avoids forking if built-in commands are entered 
+    if (strcmp(token[0], "cd") != 0 && 
+        strcmp(token[0], "quit") != 0 && 
+        strcmp(token[0], "exit") != 0)
     {
-      // We are back in parent process
-      int status;
-      wait(&status);
+      pid_t pid = fork();
+      
+      if (pid == -1)
+      {
+        // When fork() returns -1, an error happened.
+        perror("fork failed: ");
+        exit( EXIT_FAILURE );
+      }
+      else if (pid == 0)
+      {
+        // When fork() returns 0, we are in child process
+        char *full_path = search_directories(token[0]);
+        if(full_path == NULL)
+        { 
+          print_error_message();
+          exit(0);
+        }
+        else
+        {
+          execv(full_path, token);
+        }
 
-      free(head_ptr);
+      }
+      else
+      {
+        // Back in parent process
+        int status;
+        wait(&status);
+      }
     }
+    free(head_ptr);
   }
   return 0;
   // e2520ca2-76f3-90d6-0242ac1210022
