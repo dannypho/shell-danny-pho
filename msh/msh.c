@@ -236,6 +236,11 @@ void execute_command(char *command_string)
       { 
         exit(0);
       }
+      else if((strcmp(trimmed_token[0], "exit") == 0 && trimmed_token[1] != NULL) || 
+              (strcmp(trimmed_token[0], "quit") == 0 && trimmed_token[1] != NULL))
+      {
+        print_error_message();
+      }
 
       if (strcmp(trimmed_token[0], "cd") == 0)
       { 
@@ -320,6 +325,7 @@ int main(int argc, char *argv[])
           execute_command(command_string);
         }
         fclose(file);
+        exit(0);
       }
     }
     else
