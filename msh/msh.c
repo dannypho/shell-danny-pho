@@ -135,6 +135,40 @@ char *search_directories(char shell_commmand[])
   return NULL;
 }
 
+// Trims whitespace to allow for varying amounts of whitespace in between commands
+// Returns an array of character pointers, terminated by NULL
+char **trim_whitespace(char **token, int size)
+{
+
+  // Search for the number of valid strings
+  int count = 0;
+
+  for (int i = 0; i < size; i++)
+  {
+    if (token[i] != NULL)
+    {
+      count++;
+    }
+  }
+
+  // Malloc enough space for valid strings + 1 for null terminator
+  char **trimmed_token = malloc((count + 1) * sizeof(char *));
+  int trim_count = 0;
+  
+  for (int i = 0; i < size; i++)
+  {
+    if (token[i] != NULL)
+    {
+      trimmed_token[trim_count] = malloc(MAX_COMMAND_SIZE * sizeof(char));
+      strcpy(trimmed_token[trim_count], token[i]);
+      trim_count++;
+    }
+  }
+  trimmed_token[trim_count] = NULL;
+  
+  return trimmed_token;
+}
+
 int main()
 {
 
@@ -167,7 +201,7 @@ int main()
     // the correct amount at the end
     
     char *head_ptr = working_string;
-    
+    int valid_string = 0;
     // Tokenize the input with whitespace used as the delimiter
     while ( ( (argument_pointer = strsep(&working_string, WHITESPACE ) ) != NULL) &&
               (token_count<MAX_NUM_ARGUMENTS))
@@ -176,6 +210,10 @@ int main()
       if( strlen( token[token_count] ) == 0 )
       {
         token[token_count] = NULL;
+      }
+      else
+      {
+        valid_string++;
       }
         token_count++;
     }
@@ -186,65 +224,76 @@ int main()
     // int token_index  = 0;
     // for( token_index = 0; token_index < token_count; token_index ++ ) 
     // {
-    //   printf("token[%d] = %s\n", token_index, token[token_index] );
+    //   printf("token[%d] = %s\n size = %d\n", token_index, token[token_index], token_count );
+    // }
+    // printf("valid_strings = %d", valid_string);
+
+    char **trimmed_token = trim_whitespace(token, token_count);
+
+    // for (int i = 0; i < valid_string + 1; i ++)
+    // {
+    //   printf("trimmed_token[%d] = %s\n size = %d\n", i, trimmed_token[i], valid_string + 1);
     // }
 
     // Handle built-in commands
-    if ((strcmp(token[0], "exit") == 0 && token[1] == NULL) || 
-        (strcmp(token[0], "quit") == 0 && token[1] == NULL))
-    { 
-      exit(0);
-    }
-
-    if (strcmp(token[0], "cd") == 0)
-    { 
-      if (token[1] != NULL && token[2] == NULL)
-      {
-        chdir(token[1]);
-      }
-      else
-      {
-        print_error_message();
-      }
-    }
-    
-    // Handle shell commands
-    // Avoids forking if built-in commands are entered 
-    if (strcmp(token[0], "cd") != 0 && 
-        strcmp(token[0], "quit") != 0 && 
-        strcmp(token[0], "exit") != 0)
+    if(trimmed_token[0] != NULL)
     {
-      pid_t pid = fork();
-      
-      if (pid == -1)
-      {
-        // When fork() returns -1, an error happened.
-        perror("fork failed: ");
-        exit( EXIT_FAILURE );
+      if ((strcmp(trimmed_token[0], "exit") == 0 && trimmed_token[1] == NULL) || 
+          (strcmp(trimmed_token[0], "quit") == 0 && trimmed_token[1] == NULL))
+      { 
+        exit(0);
       }
-      else if (pid == 0)
-      {
-        // When fork() returns 0, we are in child process
-        char *full_path = search_directories(token[0]);
-        if(full_path == NULL)
-        { 
-          print_error_message();
-          exit(0);
+
+      if (strcmp(trimmed_token[0], "cd") == 0)
+      { 
+        if (trimmed_token[1] != NULL && trimmed_token[2] == NULL)
+        {
+          chdir(trimmed_token[1]);
         }
         else
         {
-          execv(full_path, token);
+          print_error_message();
         }
-
       }
-      else
+    
+      // Handle shell commands
+      // Avoids forking if built-in commands are entered 
+      if (strcmp(trimmed_token[0], "cd") != 0 && 
+          strcmp(trimmed_token[0], "quit") != 0 && 
+          strcmp(trimmed_token[0], "exit") != 0)
       {
-        // Back in parent process
-        int status;
-        wait(&status);
+        pid_t pid = fork();
+      
+        if (pid == -1)
+        {
+          // When fork() returns -1, an error happened.
+          perror("fork failed: ");
+          exit( EXIT_FAILURE );
+        }
+        else if (pid == 0)
+        {
+          // When fork() returns 0, we are in child process
+          char *full_path = search_directories(trimmed_token[0]);
+          if(full_path == NULL)
+          { 
+            print_error_message();
+            exit(0);
+          }
+          else
+          {
+            execv(full_path, trimmed_token);
+          }
+
+        }
+        else
+        {
+          // Back in parent process
+          int status;
+          wait(&status);
+        }
       }
+      free(head_ptr);
     }
-    free(head_ptr);
   }
   return 0;
   // e2520ca2-76f3-90d6-0242ac1210022
