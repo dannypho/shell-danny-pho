@@ -170,21 +170,13 @@ char **trim_whitespace(char **token, int size)
   return trimmed_token;
 }
 
-int main()
+// Handles string tokenization and process creation
+void execute_command(char *command_string)
 {
-
-  char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
-
-  while( 1 )
-  {
-    // Print out the msh prompt
-    printf ("msh> ");
-
-    // Read the command from the command line.  The
+  // Read the command from the command line.  The
     // maximum command that will be read is MAX_COMMAND_SIZE
     // This while command will wait here until the user
     // inputs something.
-    while( !fgets (command_string, MAX_COMMAND_SIZE, stdin) );
 
     /* Parse input */
     char *token[MAX_NUM_ARGUMENTS];
@@ -296,6 +288,45 @@ int main()
     }
     free(trimmed_token);
     free(head_ptr);
+}
+
+int main(int argc, char *argv[])
+{
+
+  char *command_string = (char*) malloc( MAX_COMMAND_SIZE );
+
+  while(1)
+  {
+    // Print out the msh prompt
+    if (argc == 1)
+    {
+      printf ("msh> ");
+      if(fgets(command_string, MAX_COMMAND_SIZE, stdin) != NULL)
+      {
+        execute_command(command_string);
+      }
+    }
+    else if (argc == 2)
+    {
+      FILE *file = fopen(argv[1], "r");
+      if (file == NULL)
+      {
+        exit(1);
+      }
+      else
+      {
+        while(fgets(command_string, MAX_COMMAND_SIZE, file) != NULL)
+        {
+          execute_command(command_string);
+        }
+        fclose(file);
+      }
+    }
+    else
+    {
+      exit(1);
+    }
+    free(command_string);
   }
   return 0;
   // e2520ca2-76f3-90d6-0242ac1210022
