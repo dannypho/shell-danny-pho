@@ -48,7 +48,6 @@ void print_error_message()
   write(STDERR_FILENO, error_message, strlen(error_message)); 
 }
 
-
 // Checks if the shell command is valid by appending it to the four required directories
 // and passing it through access()
 // Returns the path (string) if access is successful
@@ -154,7 +153,9 @@ char **trim_whitespace(char **token, int size)
   // Malloc enough space for valid strings + 1 for null terminator
   char **trimmed_token = malloc((count + 1) * sizeof(char *));
   int trim_count = 0;
-  
+
+  // Copy valid strings into new array of char pointers
+  // Null terminate the array
   for (int i = 0; i < size; i++)
   {
     if (token[i] != NULL)
@@ -292,8 +293,9 @@ int main()
           wait(&status);
         }
       }
-      free(head_ptr);
     }
+    free(trimmed_token);
+    free(head_ptr);
   }
   return 0;
   // e2520ca2-76f3-90d6-0242ac1210022
