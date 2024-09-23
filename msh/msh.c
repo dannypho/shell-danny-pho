@@ -32,6 +32,7 @@
 #include <signal.h>
 #include <ctype.h>
 #include <dirent.h>
+#include <fcntl.h>
 
 #define WHITESPACE " \t\n"      // We want to split our command line up into tokens
                                 // so we need to define what delimits our tokens.
@@ -173,7 +174,7 @@ char **trim_whitespace(char **token, int size)
 // Handles string tokenization and process creation
 void execute_command(char *command_string)
 {
-  // Read the command from the command line.  The
+    // Read the command from the command line.  The
     // maximum command that will be read is MAX_COMMAND_SIZE
     // This while command will wait here until the user
     // inputs something.
@@ -210,6 +211,7 @@ void execute_command(char *command_string)
       }
         token_count++;
     }
+    // int trimmed_token_length = valid_string + 1;
 
     // Now print the tokenized input as a debug check
     // \TODO Remove this code and replace with your shell functionality
@@ -246,7 +248,10 @@ void execute_command(char *command_string)
       { 
         if (trimmed_token[1] != NULL && trimmed_token[2] == NULL)
         {
-          chdir(trimmed_token[1]);
+          if (chdir(trimmed_token[1]) == -1)
+          {
+            print_error_message();
+          }
         }
         else
         {
@@ -270,6 +275,43 @@ void execute_command(char *command_string)
         }
         else if (pid == 0)
         {
+          int i = 0;
+          int index = 0;
+          while(trimmed_token[index] != NULL)
+          {
+            index++;
+          }
+          int last_index = index - 1;
+          while(trimmed_token[i] != NULL)
+          {
+            if (strcmp(trimmed_token[i], ">") == 0)
+            { 
+              if (trimmed_token[i + 1] == NULL || i == 0)
+              {
+                print_error_message();
+                exit(0);
+              }
+              else if((trimmed_token[i + 1] != NULL) && ((i + 1) == last_index))
+              { 
+                int fd = open( trimmed_token[i+1], O_RDWR | O_CREAT, S_IRUSR | S_IWUSR );
+                if(fd < 0)
+                {
+                  print_error_message();
+                  exit(0);
+                }
+                dup2(fd, 1);
+                close(fd);
+                trimmed_token[i] = NULL;
+              }
+              else
+              {
+                print_error_message();
+                exit(0);
+              }
+            }
+            i++;
+          }
+          
           // When fork() returns 0, we are in child process
           char *full_path = search_directories(trimmed_token[0]);
           if(full_path == NULL)
@@ -290,6 +332,12 @@ void execute_command(char *command_string)
           wait(&status);
         }
       }
+    }
+    int i = 0;
+    while (trimmed_token[i] != NULL)
+    {
+      free(trimmed_token[i]);
+      i++;
     }
     free(trimmed_token);
     free(head_ptr);
@@ -315,7 +363,8 @@ int main(int argc, char *argv[])
     {
       FILE *file = fopen(argv[1], "r");
       if (file == NULL)
-      {
+      { 
+        print_error_message();
         exit(1);
       }
       else
@@ -329,7 +378,8 @@ int main(int argc, char *argv[])
       }
     }
     else
-    {
+    { 
+      print_error_message();
       exit(1);
     }
     free(command_string);
