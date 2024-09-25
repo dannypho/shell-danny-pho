@@ -382,7 +382,6 @@ int main(int argc, char *argv[])
       print_error_message();
       exit(1);
     }
-    free(command_string);
   }
   return 0;
   // e2520ca2-76f3-90d6-0242ac1210022
