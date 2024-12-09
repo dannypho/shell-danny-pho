@@ -20,5 +20,60 @@ The Unix Shell operates by repeatedly displaying a prompt (`msh> `), accepting u
 
 ### Build
 To build the shell, use:
-```bash
+```
 make
+```
+
+### Running the Shell
+Launch the shell in interactive mode:
+```
+./msh
+```
+To run the shell in batch mode with a file of commands:
+```
+./msh batch.txt
+```
+
+### Running Tests
+```
+./test-msh.sh
+```
+
+## Technical Details
+
+The shell is implemented as an interactive loop: 
+1. Prompts the user for input.
+2. Parses the command and its arguments.
+3. Executes the command, either as a built-in or an external program.
+4. Handles errors gracefully and provides feedback to the user.
+
+### Built-in Commands
+* exit: Terimantes the shell
+* cd<path>: Changes the working directory to <path>. If the path is invalid, an error message is displayed.
+* quit: An alternative to exit, also terminates the shell.
+
+### Redirection
+Output redirection is implemented with the > operator. For example:
+```
+ls -la > output.txt
+```
+This writes both standard output and error output to the specified file.
+
+### Error Handling
+Errors are handled consistently, displaying a single message:
+```
+An error has occurred
+```
+
+### Path Handling
+Commands are searched for in the following directories:
+
+1. /bin
+2. /usr/bin
+3. /usr/local/bin
+4. ./ (current directory)
+
+### Notes
+This project demonstrates foundational concepts in Unix programming and process management. It can be extended to include advanced shell features such as pipes, additional built-in commands, and environment variable support.
+
+
